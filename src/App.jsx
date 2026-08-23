@@ -19,6 +19,22 @@ const deleteTodo = (id )=>{
 
 const toggleComplete = (id)=>{setTodos((prev)=>  prev.map((prevTodo)=> prevTodo.id === id  ? {...prevTodo, completed :!prevTodo.completed }: prevTodo  ) )}
 
+const moveTodo = (id, direction, visibleIds) => {
+  setTodos((prev) => {
+    const currentVisibleIndex = visibleIds.indexOf(id)
+    const targetVisibleIndex = currentVisibleIndex + direction
+    if (currentVisibleIndex < 0 || targetVisibleIndex < 0 || targetVisibleIndex >= visibleIds.length) return prev
+
+    const targetId = visibleIds[targetVisibleIndex]
+    const currentIndex = prev.findIndex((todo) => todo.id === id)
+    const targetIndex = prev.findIndex((todo) => todo.id === targetId)
+    const reordered = [...prev]
+    ;[reordered[currentIndex], reordered[targetIndex]] = [reordered[targetIndex], reordered[currentIndex]]
+    return reordered
+  })
+  setSortOrder("manual")
+}
+
 
 useEffect(()=>{
   localStorage.setItem("todos", JSON.stringify(todos))
@@ -26,12 +42,12 @@ useEffect(()=>{
 
   const visibleTodos = [...todos]
     .filter((todo) => todo.todo.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-    .sort((firstTodo, secondTodo) => sortOrder === "newest"
+    .sort((firstTodo, secondTodo) => sortOrder === "manual" ? 0 : sortOrder === "newest"
       ? secondTodo.id - firstTodo.id
       : firstTodo.id - secondTodo.id)
 
   return (
-  <TodoProvider value ={{todos,addTodo, updateTodo,deleteTodo,toggleComplete}}>
+  <TodoProvider value ={{todos,addTodo, updateTodo,deleteTodo,toggleComplete,moveTodo}}>
    <main className="app-shell">
      <div className="app-noise" aria-hidden="true" />
      <section className="todo-board">
@@ -80,6 +96,13 @@ useEffect(()=>{
            >
              Oldest
            </button>
+           <button
+             type="button"
+             className={`sort-button ${sortOrder === "manual" ? "sort-button-active" : ""}`}
+             onClick={() => setSortOrder("manual")}
+           >
+             Custom
+           </button>
          </div>
        </div>
        <div className="list-heading">
@@ -95,7 +118,15 @@ useEffect(()=>{
              <strong>{searchQuery ? "No task found" : "Nothing here yet"}</strong>
              <span>{searchQuery ? "Try another word or check the spelling." : "Capture the first thing on your mind above."}</span>
            </div>
-         ) : visibleTodos.map((todo) => <TodoItem key={todo.id} todo={todo} />)}
+         ) : visibleTodos.map((todo, index) => (
+           <TodoItem
+             key={todo.id}
+             todo={todo}
+             canMoveUp={index > 0}
+             canMoveDown={index < visibleTodos.length - 1}
+             onMove={(direction) => moveTodo(todo.id, direction, visibleTodos.map((item) => item.id))}
+           />
+         ))}
        </div>
        <footer className="made-by">Made by <strong>The Jasir</strong> <span className="heart-mark" aria-label="with love">&#9829;</span></footer>
      </section>
