@@ -106,7 +106,7 @@ const moveTodo = (id, direction, visibleIds) => {
 useEffect(()=>{
   const serializedTodos = JSON.stringify(todos)
   localStorage.setItem(TODOS_STORAGE_KEY, serializedTodos)
-  if (todos.length > 0) localStorage.setItem(TODOS_BACKUP_KEY, serializedTodos)
+  localStorage.setItem(TODOS_BACKUP_KEY, serializedTodos)
 },[todos])
 
   useEffect(() => {
