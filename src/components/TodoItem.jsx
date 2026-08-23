@@ -16,6 +16,9 @@ function TodoItem({ todo, canMoveUp, canMoveDown, onMove }) {
     toggleComplete(todo.id)
   }
 
+    const isOverdue = todo.dueDate && !todo.completed && new Date(`${todo.dueDate}T23:59:59`) < new Date()
+    const dueLabel = todo.dueDate ? new Date(`${todo.dueDate}T00:00:00`).toLocaleDateString(undefined, {month: "short", day: "numeric"}) : ""
+
 
 
 
@@ -34,14 +37,21 @@ function TodoItem({ todo, canMoveUp, canMoveDown, onMove }) {
                 checked={todo.completed}
                 onChange={toggleCompleted}
             />
-            <input
-                type="text"
-                className={`todo-text ${isTodoEditable ? "todo-text-editing" : ""}`}
-                aria-label="Todo text"
-                value={todoMessage}
-                onChange={(e) => setTodoMessage(e.target.value)}
-                readOnly={!isTodoEditable}
-            />
+            <div className="todo-details">
+                <input
+                    type="text"
+                    className={`todo-text ${isTodoEditable ? "todo-text-editing" : ""}`}
+                    aria-label="Todo text"
+                    value={todoMessage}
+                    onChange={(e) => setTodoMessage(e.target.value)}
+                    readOnly={!isTodoEditable}
+                />
+                <div className="todo-meta">
+                    <span className="category-tag">{todo.category}</span>
+                    <span className={`priority-tag priority-${todo.priority.toLowerCase()}`}>{todo.priority}</span>
+                    {dueLabel && <span className={isOverdue ? "due-tag due-overdue" : "due-tag"}>{isOverdue ? "Overdue" : `Due ${dueLabel}`}</span>}
+                </div>
+            </div>
             <button
                 type="button"
                 className="item-button"
