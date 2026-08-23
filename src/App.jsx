@@ -2,10 +2,18 @@ import { useEffect, useState } from "react"
 import { todoProvider as TodoProvider } from "./context/todoContext"
 import TodoForm from "./components/TodoForm"
 import TodoItem from "./components/TodoItem"
+
+const APP_VERSION = "2026.08.24"
+const APP_VERSION_STORAGE_KEY = "todo-app-version"
+
 function App() {
   const [todos,setTodos]=useState (() => JSON.parse(localStorage.getItem("todos") || "[]"))
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState("newest")
+  const [showUpdateNotice, setShowUpdateNotice] = useState(() => {
+    const previousVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY)
+    return Boolean((previousVersion && previousVersion !== APP_VERSION) || (!previousVersion && todos.length > 0))
+  })
 
   const addTodo =(todo)=>{
     setTodos ((prev)=> [{id : Date.now(),...todo},...prev])
@@ -40,6 +48,10 @@ useEffect(()=>{
   localStorage.setItem("todos", JSON.stringify(todos))
 },[todos])
 
+  useEffect(() => {
+    localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION)
+  }, [])
+
   const visibleTodos = [...todos]
     .filter((todo) => todo.todo.toLowerCase().includes(searchQuery.trim().toLowerCase()))
     .sort((firstTodo, secondTodo) => sortOrder === "manual" ? 0 : sortOrder === "newest"
@@ -50,6 +62,16 @@ useEffect(()=>{
   <TodoProvider value ={{todos,addTodo, updateTodo,deleteTodo,toggleComplete,moveTodo}}>
    <main className="app-shell">
      <div className="app-noise" aria-hidden="true" />
+     {showUpdateNotice && (
+       <div className="update-notice" role="status">
+         <span className="update-spark" aria-hidden="true">+</span>
+         <div>
+           <strong>Fresh update is here</strong>
+           <span>Your tasks are safe and ready to go.</span>
+         </div>
+         <button type="button" className="update-close" aria-label="Close update message" onClick={() => setShowUpdateNotice(false)}>Close</button>
+       </div>
+     )}
      <section className="todo-board">
        <header className="board-header">
          <div>
