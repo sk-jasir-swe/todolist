@@ -3,23 +3,31 @@ import { todoProvider as TodoProvider } from "./context/todoContext"
 import TodoForm from "./components/TodoForm"
 import TodoItem from "./components/TodoItem"
 
-const APP_VERSION = "2026.08.24"
+const APP_VERSION = "2026.08.24.1"
 const APP_VERSION_STORAGE_KEY = "todo-app-version"
+const TODOS_STORAGE_KEY = "todos"
+const TODOS_BACKUP_KEY = "todos-backup"
+
+const loadSavedTodos = () => {
+  const savedValue = localStorage.getItem(TODOS_STORAGE_KEY) || localStorage.getItem(TODOS_BACKUP_KEY) || "[]"
+  try {
+    const savedTodos = JSON.parse(savedValue)
+    if (!Array.isArray(savedTodos)) return []
+    const normalizedTodos = savedTodos.map((todo) => ({
+      ...todo,
+      category: todo.category || "Personal",
+      priority: todo.priority || "Medium",
+      dueDate: todo.dueDate || ""
+    }))
+    if (normalizedTodos.length > 0) localStorage.setItem(TODOS_BACKUP_KEY, JSON.stringify(normalizedTodos))
+    return normalizedTodos
+  } catch {
+    return []
+  }
+}
 
 function App() {
-  const [todos,setTodos]=useState (() => {
-    try {
-      const savedTodos = JSON.parse(localStorage.getItem("todos") || "[]")
-      return Array.isArray(savedTodos) ? savedTodos.map((todo) => ({
-        ...todo,
-        category: todo.category || "Personal",
-        priority: todo.priority || "Medium",
-        dueDate: todo.dueDate || ""
-      })) : []
-    } catch {
-      return []
-    }
-  })
+  const [todos,setTodos]=useState(loadSavedTodos)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState("newest")
   const [filter, setFilter] = useState("all")
@@ -40,12 +48,11 @@ function App() {
   const updateTodo = (id, todo)=>{setTodos((prev)=> prev.map((prevTodo)=>(prevTodo.id === id ? todo:prevTodo)))}
 
 const deleteTodo = (id )=>{
-  setTodos((prev)=> {
-    const deletedIndex = prev.findIndex((todo) => todo.id === id)
-    const deleted = prev[deletedIndex]
-    if (deleted) setDeletedTodo({todo: deleted, index: deletedIndex})
-    return prev.filter((todo)=>todo.id !== id)
-  })
+  const deletedIndex = todos.findIndex((todo) => todo.id === id)
+  const deleted = todos[deletedIndex]
+  if (!deleted) return
+  setDeletedTodo({todo: deleted, index: deletedIndex})
+  setTodos((prev)=> prev.filter((todo)=>todo.id !== id))
 }
 
 const undoDelete = () => {
@@ -87,7 +94,9 @@ const moveTodo = (id, direction, visibleIds) => {
 
 
 useEffect(()=>{
-  localStorage.setItem("todos", JSON.stringify(todos))
+  const serializedTodos = JSON.stringify(todos)
+  localStorage.setItem(TODOS_STORAGE_KEY, serializedTodos)
+  if (todos.length > 0) localStorage.setItem(TODOS_BACKUP_KEY, serializedTodos)
 },[todos])
 
   useEffect(() => {
