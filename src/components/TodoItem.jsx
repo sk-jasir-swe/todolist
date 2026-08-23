@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTodo } from '../context/todoContext';
 
-function TodoItem({ todo }) {
+function TodoItem({ todo, canMoveUp, canMoveDown, onMove }) {
   const [isTodoEditable, setIsTodoEditable] = useState(false)
 
   const [todoMessage, setTodoMessage] = useState(todo.todo)
@@ -65,6 +65,14 @@ function TodoItem({ todo }) {
             >
                 Delete
             </button>
+                        <div className="move-controls" aria-label="Move task">
+                            <button type="button" className="move-button" aria-label="Move task up" onClick={() => onMove(-1)} disabled={!canMoveUp}>
+                                Up
+                            </button>
+                            <button type="button" className="move-button" aria-label="Move task down" onClick={() => onMove(1)} disabled={!canMoveDown}>
+                                Down
+                            </button>
+                        </div>
         </div>
     );
 }
