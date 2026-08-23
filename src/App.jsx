@@ -4,6 +4,8 @@ import TodoForm from "./components/TodoForm"
 import TodoItem from "./components/TodoItem"
 function App() {
   const [todos,setTodos]=useState (() => JSON.parse(localStorage.getItem("todos") || "[]"))
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortOrder, setSortOrder] = useState("newest")
 
   const addTodo =(todo)=>{
     setTodos ((prev)=> [{id : Date.now(),...todo},...prev])
@@ -21,6 +23,12 @@ const toggleComplete = (id)=>{setTodos((prev)=>  prev.map((prevTodo)=> prevTodo.
 useEffect(()=>{
   localStorage.setItem("todos", JSON.stringify(todos))
 },[todos])
+
+  const visibleTodos = [...todos]
+    .filter((todo) => todo.todo.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    .sort((firstTodo, secondTodo) => sortOrder === "newest"
+      ? secondTodo.id - firstTodo.id
+      : firstTodo.id - secondTodo.id)
 
   return (
   <TodoProvider value ={{todos,addTodo, updateTodo,deleteTodo,toggleComplete}}>
@@ -47,18 +55,47 @@ useEffect(()=>{
          <TodoForm />
        </div>
 
+       <div className="list-tools">
+         <label className="search-box">
+           <input
+             type="search"
+             placeholder="Search your tasks"
+             aria-label="Search your tasks"
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+           />
+         </label>
+         <div className="sort-controls" aria-label="Sort tasks">
+           <button
+             type="button"
+             className={`sort-button ${sortOrder === "newest" ? "sort-button-active" : ""}`}
+             onClick={() => setSortOrder("newest")}
+           >
+             Newest
+           </button>
+           <button
+             type="button"
+             className={`sort-button ${sortOrder === "oldest" ? "sort-button-active" : ""}`}
+             onClick={() => setSortOrder("oldest")}
+           >
+             Oldest
+           </button>
+         </div>
+       </div>
        <div className="list-heading">
          <p className="section-label">Your list</p>
-         <span>{todos.length === 0 ? "A clean slate" : `${todos.length} ${todos.length === 1 ? "task" : "tasks"}`}</span>
+         <span>{visibleTodos.length === 0
+           ? (searchQuery ? "No matches" : "A clean slate")
+           : `${visibleTodos.length} ${visibleTodos.length === 1 ? "task" : "tasks"}`}</span>
        </div>
        <div className="todo-list">
-         {todos.length === 0 ? (
+         {visibleTodos.length === 0 ? (
            <div className="empty-state">
              <div className="empty-mark">+</div>
-             <strong>Nothing here yet</strong>
-             <span>Capture the first thing on your mind above.</span>
+             <strong>{searchQuery ? "No task found" : "Nothing here yet"}</strong>
+             <span>{searchQuery ? "Try another word or check the spelling." : "Capture the first thing on your mind above."}</span>
            </div>
-         ) : todos.map((todo) => <TodoItem key={todo.id} todo={todo} />)}
+         ) : visibleTodos.map((todo) => <TodoItem key={todo.id} todo={todo} />)}
        </div>
        <footer className="made-by">Made by <strong>The Jasir</strong> <span className="heart-mark" aria-label="with love">&#9829;</span></footer>
      </section>
