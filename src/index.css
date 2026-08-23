@@ -17,8 +17,10 @@ button, input { font: inherit; }
 	padding: 56px 20px;
 	position: relative;
 	overflow: hidden;
-	background: radial-gradient(circle at 80% 10%, #263b34 0, transparent 32%), #101318;
+	background: linear-gradient(135deg, #101318 0%, #151d1b 48%, #20241f 100%);
 }
+.app-shell::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .55; background: radial-gradient(ellipse at 86% 6%, #355847 0, transparent 28%), radial-gradient(ellipse at 8% 92%, #563d2d 0, transparent 24%); }
+.app-shell::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .22; background-image: linear-gradient(#9be3bd12 1px, transparent 1px), linear-gradient(90deg, #9be3bd12 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(to bottom, #000, transparent 80%); }
 .app-noise { position: absolute; inset: 0; opacity: .08; pointer-events: none; background-image: linear-gradient(115deg, transparent 25%, #fff 25.5%, transparent 26%); background-size: 7px 7px; }
 .update-notice { position: fixed; z-index: 2; top: 22px; left: 50%; display: flex; align-items: center; gap: 11px; width: min(390px, calc(100% - 32px)); transform: translateX(-50%); border: 1px solid #5d806b; border-radius: 5px; background: #dff2e5; box-shadow: 0 16px 35px #0006; color: #193327; padding: 12px 13px; animation: update-arrival .45s ease-out both; }
 .update-spark { display: grid; place-items: center; flex: 0 0 auto; width: 25px; height: 25px; border: 1px solid #58846a; border-radius: 50%; color: #2d7047; font-size: 18px; }
@@ -108,7 +110,9 @@ h1 { max-width: 620px; margin: 0; color: #f8f4ed; font-size: clamp(36px, 6vw, 70
 .undo-bar button, .clear-completed { border: 0; background: transparent; color: #2d7047; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; }
 .clear-completed { display: block; margin: 18px 0 0 auto; color: #8e9891; }
 .clear-completed:hover, .undo-bar button:hover { color: #e98d62; }
-.app-shell-light { color: #20251f; background: radial-gradient(circle at 80% 10%, #d6e8dc 0, transparent 32%), #f1eee7; }
+.app-shell-light { color: #20251f; background: linear-gradient(135deg, #f1eee7 0%, #e8f0e8 52%, #f3e8dc 100%); }
+.app-shell-light::before { opacity: .45; background: radial-gradient(ellipse at 86% 6%, #c4dfcf 0, transparent 28%), radial-gradient(ellipse at 8% 92%, #f0d5bd 0, transparent 24%); }
+.app-shell-light::after { background-image: linear-gradient(#49665318 1px, transparent 1px), linear-gradient(90deg, #49665318 1px, transparent 1px); }
 .app-shell-light h1, .app-shell-light .stat-card strong { color: #20251f; }
 .app-shell-light .board-subtitle, .app-shell-light .stat-card span, .app-shell-light .list-heading > span, .app-shell-light .filter-button, .app-shell-light .search-box input, .app-shell-light .todo-text { color: #566159; }
 .app-shell-light .todo-item { background: #fffdf8; border-color: #c8d2c9; }
