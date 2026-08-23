@@ -3,7 +3,7 @@ import { todoProvider as TodoProvider } from "./context/todoContext"
 import TodoForm from "./components/TodoForm"
 import TodoItem from "./components/TodoItem"
 
-const APP_VERSION = "2026.08.24.1"
+const APP_VERSION = "2026.08.24.2"
 const APP_VERSION_STORAGE_KEY = "todo-app-version"
 const TODOS_STORAGE_KEY = "todos"
 const TODOS_BACKUP_KEY = "todos-backup"
@@ -62,6 +62,7 @@ const deleteTodo = (id )=>{
   const deleted = todos[deletedIndex]
   if (!deleted) return
   setDeletedTodo({todo: deleted, index: deletedIndex})
+  window.setTimeout(() => setDeletedTodo(null), 4500)
   setTodos((prev)=> prev.filter((todo)=>todo.id !== id))
 }
 
@@ -111,6 +112,8 @@ useEffect(()=>{
 
   useEffect(() => {
     localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION)
+    const noticeTimer = window.setTimeout(() => setShowUpdateNotice(false), 5000)
+    return () => window.clearTimeout(noticeTimer)
   }, [])
 
     useEffect(() => {
@@ -153,7 +156,7 @@ useEffect(()=>{
        <div className="update-notice" role="status">
          <span className="update-spark" aria-hidden="true">+</span>
          <div>
-           <strong>Fresh update is here</strong>
+           <strong>Website improved!</strong>
            <span>Your tasks are safe and ready to go.</span>
          </div>
          <button type="button" className="update-close" aria-label="Close update message" onClick={() => setShowUpdateNotice(false)}>Close</button>
