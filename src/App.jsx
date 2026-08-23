@@ -15,21 +15,17 @@ const loadSavedTodos = () => {
     const mainList = Array.isArray(savedTodos) ? savedTodos : []
     const backupList = Array.isArray(backupTodos) ? backupTodos : []
     const todosToLoad = mainList.length > 0 ? mainList : backupList
-    const normalizedTodos = savedTodos.map((todo) => ({
+    const normalizedTodos = todosToLoad.map((todo) => ({
       ...todo,
       category: todo.category || "Personal",
       priority: todo.priority || "Medium",
       dueDate: todo.dueDate || ""
     }))
-    if (todosToLoad !== mainList) {
-      return backupList.map((todo) => ({
-        ...todo,
-        category: todo.category || "Personal",
-        priority: todo.priority || "Medium",
-        dueDate: todo.dueDate || ""
-      }))
+    if (mainList.length === 0 && normalizedTodos.length > 0) {
+      const restoredTodos = JSON.stringify(normalizedTodos)
+      localStorage.setItem(TODOS_STORAGE_KEY, restoredTodos)
+      localStorage.setItem(TODOS_BACKUP_KEY, restoredTodos)
     }
-    if (normalizedTodos.length > 0) localStorage.setItem(TODOS_BACKUP_KEY, JSON.stringify(normalizedTodos))
     return normalizedTodos
   } catch {
     return []
