@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { todoProvider as TodoProvider } from "./context/todoContext"
 import TodoForm from "./components/TodoForm"
 import TodoItem from "./components/TodoItem"
@@ -7,9 +7,27 @@ const APP_VERSION = "2026.08.24"
 const APP_VERSION_STORAGE_KEY = "todo-app-version"
 
 function App() {
-  const [todos,setTodos]=useState (() => JSON.parse(localStorage.getItem("todos") || "[]"))
+  const [todos,setTodos]=useState (() => {
+    try {
+      const savedTodos = JSON.parse(localStorage.getItem("todos") || "[]")
+      return Array.isArray(savedTodos) ? savedTodos.map((todo) => ({
+        ...todo,
+        category: todo.category || "Personal",
+        priority: todo.priority || "Medium",
+        dueDate: todo.dueDate || ""
+      })) : []
+    } catch {
+      return []
+    }
+  })
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState("newest")
+  const [filter, setFilter] = useState("all")
+  const [categoryFilter, setCategoryFilter] = useState("All categories")
+  const [theme, setTheme] = useState(() => localStorage.getItem("todo-theme") || "dark")
+  const [deletedTodo, setDeletedTodo] = useState(null)
+  const [completionNotice, setCompletionNotice] = useState(null)
+  const searchRef = useRef(null)
   const [showUpdateNotice, setShowUpdateNotice] = useState(() => {
     const previousVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY)
     return Boolean((previousVersion && previousVersion !== APP_VERSION) || (!previousVersion && todos.length > 0))
@@ -22,10 +40,34 @@ function App() {
   const updateTodo = (id, todo)=>{setTodos((prev)=> prev.map((prevTodo)=>(prevTodo.id === id ? todo:prevTodo)))}
 
 const deleteTodo = (id )=>{
-  setTodos((prev)=> prev.filter((todo)=>todo.id !=id))
+  setTodos((prev)=> {
+    const deletedIndex = prev.findIndex((todo) => todo.id === id)
+    const deleted = prev[deletedIndex]
+    if (deleted) setDeletedTodo({todo: deleted, index: deletedIndex})
+    return prev.filter((todo)=>todo.id !== id)
+  })
 }
 
-const toggleComplete = (id)=>{setTodos((prev)=>  prev.map((prevTodo)=> prevTodo.id === id  ? {...prevTodo, completed :!prevTodo.completed }: prevTodo  ) )}
+const undoDelete = () => {
+  if (!deletedTodo) return
+  setTodos((prev) => {
+    const restored = [...prev]
+    restored.splice(Math.min(deletedTodo.index, restored.length), 0, deletedTodo.todo)
+    return restored
+  })
+  setDeletedTodo(null)
+}
+
+const clearCompleted = () => setTodos((prev) => prev.filter((todo) => !todo.completed))
+
+const toggleComplete = (id)=>{
+  const selectedTodo = todos.find((todo) => todo.id === id)
+  if (selectedTodo && !selectedTodo.completed) {
+    setCompletionNotice({task: selectedTodo.todo})
+    window.setTimeout(() => setCompletionNotice(null), 3200)
+  }
+  setTodos((prev)=> prev.map((prevTodo)=> prevTodo.id === id  ? {...prevTodo, completed :!prevTodo.completed }: prevTodo  ) )
+}
 
 const moveTodo = (id, direction, visibleIds) => {
   setTodos((prev) => {
@@ -52,15 +94,41 @@ useEffect(()=>{
     localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION)
   }, [])
 
+    useEffect(() => {
+      localStorage.setItem("todo-theme", theme)
+    }, [theme])
+
+    useEffect(() => {
+      const handleShortcut = (event) => {
+        if (event.key === "/" && document.activeElement?.tagName !== "INPUT") {
+          event.preventDefault()
+          searchRef.current?.focus()
+        }
+        if (event.key === "Escape" && document.activeElement === searchRef.current) {
+          setSearchQuery("")
+          searchRef.current.blur()
+        }
+      }
+      window.addEventListener("keydown", handleShortcut)
+      return () => window.removeEventListener("keydown", handleShortcut)
+    }, [])
+
   const visibleTodos = [...todos]
-    .filter((todo) => todo.todo.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    .filter((todo) => {
+      const matchesSearch = todo.todo.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      const matchesFilter = filter === "all" || (filter === "active" && !todo.completed) || (filter === "completed" && todo.completed)
+      const matchesCategory = categoryFilter === "All categories" || todo.category === categoryFilter
+      return matchesSearch && matchesFilter && matchesCategory
+    })
     .sort((firstTodo, secondTodo) => sortOrder === "manual" ? 0 : sortOrder === "newest"
       ? secondTodo.id - firstTodo.id
       : firstTodo.id - secondTodo.id)
+  const today = new Date().toISOString().slice(0, 10)
+  const dueTodayCount = todos.filter((todo) => todo.dueDate === today && !todo.completed).length
 
   return (
   <TodoProvider value ={{todos,addTodo, updateTodo,deleteTodo,toggleComplete,moveTodo}}>
-   <main className="app-shell">
+   <main className={`app-shell ${theme === "light" ? "app-shell-light" : ""}`}>
      <div className="app-noise" aria-hidden="true" />
      {showUpdateNotice && (
        <div className="update-notice" role="status">
@@ -72,6 +140,16 @@ useEffect(()=>{
          <button type="button" className="update-close" aria-label="Close update message" onClick={() => setShowUpdateNotice(false)}>Close</button>
        </div>
      )}
+     {completionNotice && (
+       <div className="completion-notice" role="status">
+         <span className="completion-mark" aria-hidden="true">OK</span>
+         <div>
+           <strong>Great work!</strong>
+           <span>{completionNotice.task} is complete.</span>
+         </div>
+         <button type="button" className="update-close" aria-label="Close congratulations message" onClick={() => setCompletionNotice(null)}>Close</button>
+       </div>
+     )}
      <section className="todo-board">
        <header className="board-header">
          <div>
@@ -80,6 +158,9 @@ useEffect(()=>{
            <p className="board-subtitle">A small, calm list for the things worth finishing today.</p>
          </div>
          <div className="date-chip"><span className="date-dot" /> Focus mode</div>
+         <button type="button" className="theme-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+           {theme === "dark" ? "Light" : "Dark"}
+         </button>
        </header>
 
        <div className="stats-row" aria-label="Todo summary">
@@ -87,6 +168,11 @@ useEffect(()=>{
          <div className="stat-card"><strong>{todos.filter((todo) => todo.completed).length}</strong><span>Completed</span></div>
          <div className="stat-card stat-card-accent"><strong>{todos.filter((todo) => !todo.completed).length}</strong><span>Still to do</span></div>
        </div>
+       <div className="progress-wrap">
+         <div className="progress-label"><span>Daily progress</span><strong>{todos.length ? Math.round((todos.filter((todo) => todo.completed).length / todos.length) * 100) : 0}%</strong></div>
+         <div className="progress-track"><span style={{width: `${todos.length ? (todos.filter((todo) => todo.completed).length / todos.length) * 100 : 0}%`}} /></div>
+       </div>
+      {dueTodayCount > 0 && <div className="reminder-banner" role="status"><strong>{dueTodayCount} task{dueTodayCount === 1 ? "" : "s"} due today</strong><span>Keep your momentum going.</span></div>}
 
        <div className="composer-wrap">
          <p className="section-label">Add a task</p>
@@ -99,10 +185,23 @@ useEffect(()=>{
              type="search"
              placeholder="Search your tasks"
              aria-label="Search your tasks"
+             ref={searchRef}
              value={searchQuery}
              onChange={(e) => setSearchQuery(e.target.value)}
            />
          </label>
+         <div className="filter-controls" aria-label="Filter tasks">
+           {[["all", "All"], ["active", "Active"], ["completed", "Done"]].map(([value, label]) => (
+             <button key={value} type="button" className={`filter-button ${filter === value ? "filter-button-active" : ""}`} onClick={() => setFilter(value)}>{label}</button>
+           ))}
+         </div>
+         <select className="category-filter" aria-label="Filter by category" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+           <option>All categories</option>
+           <option>Personal</option>
+           <option>Work</option>
+           <option>Study</option>
+           <option>Other</option>
+         </select>
          <div className="sort-controls" aria-label="Sort tasks">
            <button
              type="button"
@@ -150,6 +249,8 @@ useEffect(()=>{
            />
          ))}
        </div>
+      {deletedTodo && <div className="undo-bar" role="status"><span>Task deleted</span><button type="button" onClick={undoDelete}>Undo</button></div>}
+      {todos.some((todo) => todo.completed) && <button type="button" className="clear-completed" onClick={clearCompleted}>Clear completed tasks</button>}
        <footer className="made-by">Made by <strong>The Jasir</strong> <span className="heart-mark" aria-label="with love">&#9829;</span></footer>
      </section>
    </main>
