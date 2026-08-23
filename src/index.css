@@ -43,6 +43,14 @@ h1 { max-width: 620px; margin: 0; color: #f8f4ed; font-size: clamp(36px, 6vw, 70
 .add-button span { font-size: 19px; margin-left: 6px; }
 .list-heading { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #35403c; padding-bottom: 13px; }
 .list-heading .section-label { margin: 0; }
+.list-tools { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.search-box { display: flex; align-items: center; gap: 8px; flex: 1; border-bottom: 1px solid #35403c; color: #8e9891; padding: 8px 2px; }
+.search-box input { width: 100%; border: 0; outline: 0; color: #f1eee7; background: transparent; font-size: 14px; }
+.search-box input::placeholder { color: #66736b; }
+.search-box:focus-within { border-color: #e98d62; }
+.sort-controls { display: flex; border: 1px solid #35403c; border-radius: 3px; padding: 3px; }
+.sort-button { border: 0; border-radius: 2px; background: transparent; color: #8e9891; cursor: pointer; padding: 7px 9px; font-family: 'DM Mono', monospace; font-size: 10px; }
+.sort-button-active { background: #35483e; color: #f8f4ed; }
 .todo-list { display: grid; gap: 9px; padding-top: 12px; }
 .todo-item { display: flex; align-items: center; gap: 13px; min-height: 64px; padding: 10px 12px; border: 1px solid #303934; border-radius: 4px; background: #1b211f; transition: border-color .2s, transform .2s; }
 .todo-item:hover { border-color: #63736a; transform: translateX(3px); }
@@ -64,4 +72,4 @@ h1 { max-width: 620px; margin: 0; color: #f8f4ed; font-size: clamp(36px, 6vw, 70
 .made-by strong { color: #a7ada8; font-weight: 500; }
 .heart-mark { display: inline-block; color: #e7794d; font-size: 13px; margin-left: 4px; animation: heartbeat 1.8s ease-in-out infinite; }
 @keyframes heartbeat { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.18); } 24% { transform: scale(1); } }
-@media (max-width: 600px) { .app-shell { padding: 32px 16px; } .board-header { display: block; padding-bottom: 30px; } .date-chip { display: inline-block; margin-top: 22px; } .composer-wrap { padding: 16px; } .todo-form { display: grid; gap: 12px; } .add-button { min-height: 44px; } .item-button { font-size: 10px; } }
+@media (max-width: 600px) { .app-shell { padding: 32px 16px; } .board-header { display: block; padding-bottom: 30px; } .date-chip { display: inline-block; margin-top: 22px; } .composer-wrap { padding: 16px; } .todo-form { display: grid; gap: 12px; } .add-button { min-height: 44px; } .item-button { font-size: 10px; } .list-tools { align-items: stretch; flex-direction: column; gap: 10px; } .sort-controls { align-self: flex-start; } }
