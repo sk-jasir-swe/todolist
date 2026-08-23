@@ -9,16 +9,26 @@ const TODOS_STORAGE_KEY = "todos"
 const TODOS_BACKUP_KEY = "todos-backup"
 
 const loadSavedTodos = () => {
-  const savedValue = localStorage.getItem(TODOS_STORAGE_KEY) || localStorage.getItem(TODOS_BACKUP_KEY) || "[]"
   try {
-    const savedTodos = JSON.parse(savedValue)
-    if (!Array.isArray(savedTodos)) return []
+    const savedTodos = JSON.parse(localStorage.getItem(TODOS_STORAGE_KEY) || "[]")
+    const backupTodos = JSON.parse(localStorage.getItem(TODOS_BACKUP_KEY) || "[]")
+    const mainList = Array.isArray(savedTodos) ? savedTodos : []
+    const backupList = Array.isArray(backupTodos) ? backupTodos : []
+    const todosToLoad = mainList.length > 0 ? mainList : backupList
     const normalizedTodos = savedTodos.map((todo) => ({
       ...todo,
       category: todo.category || "Personal",
       priority: todo.priority || "Medium",
       dueDate: todo.dueDate || ""
     }))
+    if (todosToLoad !== mainList) {
+      return backupList.map((todo) => ({
+        ...todo,
+        category: todo.category || "Personal",
+        priority: todo.priority || "Medium",
+        dueDate: todo.dueDate || ""
+      }))
+    }
     if (normalizedTodos.length > 0) localStorage.setItem(TODOS_BACKUP_KEY, JSON.stringify(normalizedTodos))
     return normalizedTodos
   } catch {
