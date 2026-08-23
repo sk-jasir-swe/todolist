@@ -11,7 +11,8 @@ export const todoContext = createContext({
     addTodo : ()=>{},
     updateTodo : ()=>{},
     deleteTodo : ()=>{},
-    toggleComplete : ()=>{}
+    toggleComplete : ()=>{},
+    moveTodo : ()=>{}
 })
 
 export const useTodo = ()=>{
