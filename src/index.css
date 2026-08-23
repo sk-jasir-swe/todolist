@@ -64,6 +64,10 @@ h1 { max-width: 620px; margin: 0; color: #f8f4ed; font-size: clamp(36px, 6vw, 70
 .item-button { border: 0; background: transparent; color: #9ea9a1; cursor: pointer; font-size: 11px; padding: 8px 5px; }
 .item-button:hover { color: #f8f4ed; }
 .delete-button:hover { color: #e98d62; }
+.move-controls { display: flex; flex-direction: column; gap: 2px; margin-left: auto; }
+.move-button { border: 0; background: transparent; color: #8e9891; cursor: pointer; padding: 2px 5px; font-family: 'DM Mono', monospace; font-size: 9px; }
+.move-button:hover:not(:disabled) { color: #e98d62; }
+.move-button:disabled { color: #3c4740; cursor: default; }
 .empty-state { display: grid; justify-items: center; gap: 8px; border: 1px dashed #35403c; padding: 48px 20px; color: #8e9891; text-align: center; }
 .empty-state strong { color: #d8ded9; font-size: 15px; }
 .empty-state span { font-family: 'DM Mono', monospace; font-size: 11px; }
